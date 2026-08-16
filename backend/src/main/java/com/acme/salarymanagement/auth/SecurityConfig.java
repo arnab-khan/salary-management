@@ -9,13 +9,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 public class SecurityConfig {
@@ -29,8 +29,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF is disabled for JSON API login/logout requests.
-                .csrf(AbstractHttpConfigurer::disable)
+                // Cookie-based session auth keeps CSRF protection enabled.
+                // Spring sends XSRF-TOKEN as a readable cookie, and Angular sends it back
+                // on unsafe requests as the X-XSRF-TOKEN header.
+                // Login/logout are ignored because they create or clear the session itself.
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/api/auth/login", "/api/auth/logout"))
                 .authorizeHttpRequests(auth -> auth
                         // Login must be public so the HR manager can create a session.
                         .requestMatchers("/api/auth/login").permitAll()
