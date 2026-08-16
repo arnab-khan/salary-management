@@ -1,0 +1,14 @@
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <p class="text-uppercase text-secondary fw-semibold small mb-1">ACME Salary Management</p>
+      <h1 class="h3 mb-0">Employees</h1>
+    </div>
+
+    <button type="button" class="btn btn-outline-danger" [disabled]="isLoggingOut()" (click)="logout()">
+      {{ isLoggingOut() ? 'Logging out...' : 'Logout' }}
+    </button>
+  </div>
+
+  <p class="text-secondary mb-0">Employee list will appear here.</p>
+</div>

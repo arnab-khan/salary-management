@@ -1,8 +1,22 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
+import { credentialsInterceptor } from './core/interceptors/credentials-interceptor';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideBrowserGlobalErrorListeners(), provideRouter(routes)],
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideRouter(routes),
+    provideHttpClient(
+      withInterceptors([credentialsInterceptor]),
+      // Matches Spring Security CSRF setup: backend sends XSRF-TOKEN cookie,
+      // Angular sends it back as X-XSRF-TOKEN on unsafe requests.
+      withXsrfConfiguration({
+        cookieName: 'XSRF-TOKEN',
+        headerName: 'X-XSRF-TOKEN',
+      }),
+    ),
+  ],
 };

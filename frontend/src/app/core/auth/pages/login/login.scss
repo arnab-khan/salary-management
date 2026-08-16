@@ -1,0 +1,14 @@
+.login-page {
+  min-height: 100dvh;
+  background: #f4f7fb;
+}
+
+.login-card {
+  width: min(100%, 420px);
+  border-radius: 6px;
+}
+
+.form-control,
+.btn {
+  min-height: 44px;
+}

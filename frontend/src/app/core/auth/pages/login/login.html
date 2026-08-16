@@ -1,0 +1,56 @@
+<main class="login-page d-flex align-items-center justify-content-center p-4">
+  <section class="card login-card shadow-sm border-0" aria-labelledby="login-title">
+    <div class="card-body p-4 p-md-5">
+      <div class="mb-4">
+        <p class="text-uppercase text-secondary fw-semibold small mb-2">ACME Salary Management</p>
+        <h1 id="login-title" class="h3 text-dark mb-0">HR Login</h1>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="d-grid gap-3">
+        <div>
+          <label for="username" class="form-label fw-semibold">Email</label>
+          <input
+            id="username"
+            type="email"
+            formControlName="username"
+            autocomplete="username"
+            class="form-control"
+            [class.is-invalid]="username.invalid && username.touched"
+          />
+
+          @if (username.hasError('required') && username.touched) {
+            <div class="invalid-feedback d-block">Email is required.</div>
+          }
+
+          @if (username.hasError('pattern') && username.touched) {
+            <div class="invalid-feedback d-block">Enter a valid email address.</div>
+          }
+        </div>
+
+        <div>
+          <label for="password" class="form-label fw-semibold">Password</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+            class="form-control"
+            [class.is-invalid]="password.invalid && password.touched"
+          />
+
+          @if (password.hasError('required') && password.touched) {
+            <div class="invalid-feedback d-block">Password is required.</div>
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <div class="alert alert-danger mb-0 py-2" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <button type="submit" class="btn btn-primary w-100 fw-semibold" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Signing in...' : 'Sign in' }}
+        </button>
+      </form>
+    </div>
+  </section>
+</main>
