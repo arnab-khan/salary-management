@@ -1,21 +1,88 @@
 package com.acme.salarymanagement.auth;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
 
+    @Value("${HR_USERNAME}")
+    private String hrUsername;
+
+    @Value("${HR_PASSWORD}")
+    private String hrPassword;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // CSRF is disabled for JSON API login/logout requests.
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/employees").permitAll()
-                        .anyRequest().authenticated()
-                );
+                        // Login must be public so the HR manager can create a session.
+                        .requestMatchers("/api/auth/login").permitAll()
+                        // Allow Spring Boot error responses to be returned instead of being hidden by
+                        // auth.
+                        .requestMatchers("/error").permitAll()
+                        // All salary management APIs require a valid authenticated session.
+                        .anyRequest().authenticated())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
+                                writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
+                                        "Please login to access this resource"))
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN,
+                                        "You do not have permission to access this resource")));
 
         return http.build();
+    }
+
+    private void writeErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().write("{\"message\":\"" + message + "\"}");
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        // Predefined HR account loaded from application properties or environment
+        // variables. Spring Security stores this user in memory and compares login
+        // requests against it.
+        return new InMemoryUserDetailsManager(
+                User.withUsername(hrUsername)
+                        .password(passwordEncoder.encode(hrPassword))
+                        .roles("HR")
+                        .build());
+    }
+
+    @Bean
+    // Provides password hashing and matching for the in-memory HR user. Spring
+    // Security uses it to compare raw login password with the encoded stored
+    // password.
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    // Exposes Spring Security's configured AuthenticationManager so AuthService can
+    // inject it and validate login requests with
+    // authenticationManager.authenticate(...).
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 }
