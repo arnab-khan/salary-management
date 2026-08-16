@@ -13,11 +13,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
-
-import org.hibernate.annotations.CreationTimestamp;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +44,13 @@ public class SalaryEntity {
         @Column(nullable = false, updatable = false)
         private Currency currency;
 
-        @CreationTimestamp // Automatically sets the timestamp when the Salary record is first created.
         @Column(name = "created_at", nullable = false, updatable = false)
         private Instant createdAt;
+
+        @PrePersist // Uses the current time only when createdAt was not provided explicitly.
+        public void prePersist() {
+                if (createdAt == null) {
+                        createdAt = Instant.now();
+                }
+        }
 }
