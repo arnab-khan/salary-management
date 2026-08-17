@@ -1,0 +1,48 @@
+.employee-list {
+    height: 100vh;
+    height: 100dvh;
+}
+
+.employee-table {
+    th,
+    td {
+        width: 0;
+        white-space: nowrap;
+    }
+
+    &__id {
+        min-width: 8rem;
+    }
+
+    &__name {
+        min-width: 11rem;
+    }
+
+    &__email {
+        min-width: 16rem;
+    }
+
+    &__role {
+        min-width: 11rem;
+    }
+
+    &__experience {
+        min-width: 8rem;
+    }
+
+    &__joining-date {
+        min-width: 9rem;
+    }
+
+    &__country {
+        min-width: 9rem;
+    }
+
+    &__salary {
+        min-width: 10rem;
+    }
+
+    &__history {
+        min-width: 6rem;
+    }
+}
