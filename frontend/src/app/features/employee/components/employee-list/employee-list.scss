@@ -1,13 +1,26 @@
-.employee-list {
-    height: 100vh;
-    height: 100dvh;
+@media (min-width: 768px) {
+    .employee-list {
+        height: 100vh;
+        height: 100dvh;
+    }
+}
+
+@media (min-width: 1200px) {
+    .search-employees {
+        width: 40rem;
+    }
 }
 
 .employee-table {
+
     th,
     td {
         width: 0;
-        white-space: nowrap;
+    }
+
+    &__sort-arrows {
+        font-size: 0.625rem;
+        line-height: 0.75;
     }
 
     &__id {

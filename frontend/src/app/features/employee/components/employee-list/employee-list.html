@@ -1,10 +1,41 @@
-<div class="employee-list container-fluid min-vh-100 py-4 px-md-4 px-xl-5 d-flex flex-column">
-  <div class="d-flex align-items-center justify-content-between gap-3 pb-3 flex-shrink-0">
-    <div>
-      <h1 class="h3 mb-0">ACME Salary Management Employees</h1>
+<ng-template #sortableHeader let-label="label" let-field="field">
+  <button type="button"
+    class="btn btn-link d-inline-flex align-items-center gap-1 border-0 p-0 text-start text-decoration-none text-reset fw-semibold"
+    (click)="sortBy(field)">
+    <span>{{ label }}</span>
+    <span class="d-inline-flex flex-column employee-table__sort-arrows" aria-hidden="true">
+      <span class="d-block" [ngClass]="{
+          'text-body opacity-100': sortField() === field && sortDirection() === 'asc',
+          'text-secondary opacity-50': sortField() !== field || sortDirection() !== 'asc'
+        }">
+        &#9650;
+      </span>
+      <span class="d-block" [ngClass]="{
+          'text-body opacity-100': sortField() === field && sortDirection() === 'desc',
+          'text-secondary opacity-50': sortField() !== field || sortDirection() !== 'desc'
+        }">
+        &#9660;
+      </span>
+    </span>
+  </button>
+</ng-template>
+
+<div class="employee-list container-fluid min-vh-100 py-3 py-xl-4 px-xl-4 px-xxl-5 d-flex flex-column text-break">
+  <div class="d-flex align-items-center justify-content-between gap-3 pb-3 flex-shrink-0 flex-wrap flex-sm-nowrap">
+    <div class="flex-shrink-1 flex-xl-shrink-0 order-1 order-sm-0">
+      <h1 class="h3 mb-0">
+        <span class="d-none d-lg-inline">ACME Salary Management Employees</span>
+        <span class="d-lg-none">Employees</span>
+      </h1>
     </div>
 
-    <button type="button" class="btn btn-outline-danger" [disabled]="isLoggingOut()" (click)="logout()">
+    <div class="flex-grow-1 flex-xl-grow-0 search-employees order-3 order-sm-0 col-12 col-sm-auto">
+      <input #employeeSearch type="search" class="form-control" placeholder="Search by ID, name, or email"
+        aria-label="Search employees" [disabled]="isLoadingEmployees()"
+        (input)="onSearchKeywordChange(employeeSearch.value)">
+    </div>
+
+    <button type="button" class="btn btn-outline-danger flex-shrink-0 order-2 order-sm-0" [disabled]="isLoggingOut()" (click)="logout()">
       {{ isLoggingOut() ? 'Logging out...' : 'Logout' }}
     </button>
   </div>
@@ -12,77 +43,87 @@
   <div class="card border-0 shadow-sm rounded-3 flex-grow-1 flex-shrink-1 overflow-hidden">
     <div class="card-body p-0 h-100 position-relative d-flex flex-column">
       @if (isInitialLoading()) {
-        <div class="d-flex justify-content-center align-items-center h-100 w-100 py-4">
-          <mat-spinner diameter="40"></mat-spinner>
-        </div>
+      <div class="d-flex justify-content-center align-items-center h-100 w-100 py-4">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
       } @else {
-        <div class="table-responsive flex-grow-1 flex-shrink-1 overflow-auto">
-          <table class="employee-table table table-hover align-middle mb-0 position-relative">
-            <thead class="table-secondary position-sticky top-0">
-              <tr>
-                <th scope="col" class="employee-table__id">Employee ID</th>
-                <th scope="col" class="employee-table__name">Name</th>
-                <th scope="col" class="employee-table__email">Email</th>
-                <th scope="col" class="employee-table__role">Role</th>
-                <th scope="col" class="employee-table__experience">Experience</th>
-                <th scope="col" class="employee-table__joining-date">Joining Date</th>
-                <th scope="col" class="employee-table__country">Country</th>
-                <th scope="col" class="employee-table__salary">Current Salary</th>
-                <th scope="col" class="employee-table__history">History</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (isLoadingEmployees()) {
-                <tr>
-                  <td colspan="9" class="py-4">
-                    <div class="d-flex justify-content-center">
-                      <mat-spinner diameter="32"></mat-spinner>
-                    </div>
-                  </td>
-                </tr>
-              } @else {
-                @for (employee of employees(); track employee.id) {
-                <tr>
-                  <td>{{ employee.id }}</td>
-                  <td>{{ employee.name }}</td>
-                  <td>{{ employee.email }}</td>
-                  <td>{{ employee.role }}</td>
-                  <td>{{ employee.experience }} years</td>
-                  <td>{{ employee.joiningDate }}</td>
-                  <td>{{ employee.country }}</td>
-                  <td>
-                    @if (employee.currentSalaryAmount !== null && employee.currency) {
-                      {{ employee.currentSalaryAmount }} {{ employee.currency }}
-                    } @else {
-                      <span class="text-secondary">Not set</span>
-                    }
-                  </td>
-                  <td>{{ employee.salaryHistoryCount }}</td>
-                </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="9" class="text-center text-secondary py-4">No employees found.</td>
-                  </tr>
+      <div class="table-responsive flex-grow-1 flex-shrink-1 overflow-auto">
+        <table class="employee-table table table-hover align-middle mb-0 position-relative">
+          <thead class="table-secondary position-sticky top-0">
+            <tr>
+              <th scope="col" class="employee-table__id">Employee ID</th>
+              <th scope="col" class="employee-table__name">
+                <ng-container [ngTemplateOutlet]="sortableHeader"
+                  [ngTemplateOutletContext]="{ label: 'Name', field: 'name' }">
+                </ng-container>
+              </th>
+              <th scope="col" class="employee-table__email">
+                <ng-container [ngTemplateOutlet]="sortableHeader"
+                  [ngTemplateOutletContext]="{ label: 'Email', field: 'email' }">
+                </ng-container>
+              </th>
+              <th scope="col" class="employee-table__role">Role</th>
+              <th scope="col" class="employee-table__experience">
+                <ng-container [ngTemplateOutlet]="sortableHeader"
+                  [ngTemplateOutletContext]="{ label: 'Experience', field: 'experience' }">
+                </ng-container>
+              </th>
+              <th scope="col" class="employee-table__joining-date">
+                <ng-container [ngTemplateOutlet]="sortableHeader"
+                  [ngTemplateOutletContext]="{ label: 'Joining Date', field: 'joiningDate' }">
+                </ng-container>
+              </th>
+              <th scope="col" class="employee-table__country">Country</th>
+              <th scope="col" class="employee-table__salary">Current Salary</th>
+              <th scope="col" class="employee-table__history">History</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoadingEmployees()) {
+            <tr>
+              <td colspan="9" class="py-4">
+                <div class="d-flex justify-content-center">
+                  <mat-spinner diameter="32"></mat-spinner>
+                </div>
+              </td>
+            </tr>
+            } @else {
+            @for (employee of employees(); track employee.id) {
+            <tr>
+              <td>{{ employee.id }}</td>
+              <td>{{ employee.name }}</td>
+              <td>{{ employee.email }}</td>
+              <td>{{ employee.role }}</td>
+              <td>{{ employee.experience }} years</td>
+              <td>{{ employee.joiningDate }}</td>
+              <td>{{ employee.country }}</td>
+              <td>
+                @if (employee.currentSalaryAmount !== null && employee.currency) {
+                {{ employee.currentSalaryAmount }} {{ employee.currency }}
+                } @else {
+                <span class="text-secondary">Not set</span>
                 }
-              }
-            </tbody>
-          </table>
-        </div>
+              </td>
+              <td>{{ employee.salaryHistoryCount }}</td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="9" class="text-center text-secondary py-4">No employees found.</td>
+            </tr>
+            }
+            }
+          </tbody>
+        </table>
+      </div>
 
-        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap px-3 flex-shrink-0">
-          <div class="mb-0 text-secondary">Total employees: {{ totalElements() }}</div>
+      <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap px-3 flex-shrink-0">
+        <div class="mb-0 text-secondary">Total employees: {{ totalElements() }}</div>
 
-          <mat-paginator
-            class="bg-transparent"
-            [length]="totalElements()"
-            [pageIndex]="pageIndex()"
-            [pageSize]="pageSize()"
-            [pageSizeOptions]="[5, 10, 25, 50, 100, 500, 1000]"
-            [disabled]="isLoadingEmployees()"
-            (page)="onPageChange($event)"
-            aria-label="Select employee page">
-          </mat-paginator>
-        </div>
+        <mat-paginator class="bg-transparent" [length]="totalElements()" [pageIndex]="pageIndex()"
+          [pageSize]="pageSize()" [pageSizeOptions]="[5, 10, 25, 50, 100, 500, 1000]" [disabled]="isLoadingEmployees()"
+          (page)="onPageChange($event)" aria-label="Select employee page">
+        </mat-paginator>
+      </div>
       }
     </div>
   </div>

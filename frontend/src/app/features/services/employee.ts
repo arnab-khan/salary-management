@@ -11,11 +11,15 @@ export class Employee {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiBaseUrl}/employees`;
 
-  getEmployees(page = 0, size = 10): Observable<PageResponse<EmployeeResponse>> {
-    const params = new HttpParams()
+  getEmployees(page = 0, size = 10, sort = 'name,asc', keyword = ''): Observable<PageResponse<EmployeeResponse>> {
+    let params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('sort', 'name,asc');
+      .set('sort', sort);
+
+    if (keyword.trim()) {
+      params = params.set('keyword', keyword.trim());
+    }
 
     return this.http.get<PageResponse<EmployeeResponse>>(this.apiUrl, { params });
   }
