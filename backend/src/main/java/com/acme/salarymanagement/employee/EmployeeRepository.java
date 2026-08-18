@@ -1,6 +1,7 @@
 package com.acme.salarymanagement.employee;
 
 import com.acme.salarymanagement.common.enums.Country;
+import com.acme.salarymanagement.common.enums.Currency;
 import com.acme.salarymanagement.common.enums.Role;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,15 @@ public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long> 
                 WHERE (:roles IS NULL OR e.role IN :roles)
                 AND (:experience IS NULL OR e.experience = :experience)
                 AND (:countries IS NULL OR e.country IN :countries)
+                AND (:currency IS NULL OR EXISTS (
+                    SELECT 1 FROM SalaryEntity currentSalary
+                    WHERE currentSalary.employee = e
+                    AND currentSalary.currency = :currency
+                    AND currentSalary.createdAt = (
+                        SELECT MAX(latestSalary.createdAt) FROM SalaryEntity latestSalary
+                        WHERE latestSalary.employee = e
+                    )
+                ))
                 AND (
                     :keyword IS NULL OR
                     CAST(e.id AS string) LIKE CONCAT('%', :keyword, '%')
@@ -30,6 +40,8 @@ public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long> 
             List<Role> roles,
             Integer experience,
             List<Country> countries,
+            Currency currency,
             Pageable pageable
     );
+
 }

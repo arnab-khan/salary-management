@@ -1,6 +1,7 @@
 package com.acme.salarymanagement.employee;
 
 import com.acme.salarymanagement.common.enums.Country;
+import com.acme.salarymanagement.common.enums.Currency;
 import com.acme.salarymanagement.common.enums.Role;
 import com.acme.salarymanagement.employee.dto.EmployeeResponse;
 import java.util.List;
@@ -28,8 +29,9 @@ public class EmployeeController {
             @RequestParam(required = false) List<Role> roles,
             @RequestParam(required = false) Integer experience,
             @RequestParam(required = false) List<Country> countries,
+            @RequestParam(required = false) Currency currency,
             Pageable pageable
     ) {
-        return employeeService.getEmployees(keyword, roles, experience, countries, pageable);
+        return employeeService.getEmployees(keyword, roles, experience, countries, currency, pageable);
     }
 }

@@ -6,6 +6,7 @@ import { EmployeeResponse, PageResponse } from '../../shared/interfaces/employee
 
 export interface EmployeeFilters {
   countries: string[];
+  currency: string;
   experience: string;
   roles: string[];
 }
@@ -55,6 +56,10 @@ export class Employee {
 
     if (filters?.countries.length) {
       params = params.set('countries', filters.countries.join(','));
+    }
+
+    if (filters?.currency) {
+      params = params.set('currency', filters.currency);
     }
 
     if (filters?.experience) {

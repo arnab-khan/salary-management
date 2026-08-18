@@ -1,6 +1,7 @@
 package com.acme.salarymanagement.employee;
 
 import com.acme.salarymanagement.common.enums.Country;
+import com.acme.salarymanagement.common.enums.Currency;
 import com.acme.salarymanagement.common.enums.Role;
 import com.acme.salarymanagement.employee.dto.EmployeeResponse;
 import com.acme.salarymanagement.salary.SalaryEntity;
@@ -26,9 +27,10 @@ public class EmployeeService {
             List<Role> roles,
             Integer experience,
             List<Country> countries,
+            Currency currency,
             Pageable pageable) {
         Page<EmployeeEntity> employees = employeeRepository.searchEmployees(keyword, roles, experience, countries,
-                pageable);
+                currency, pageable);
         return employees.map(this::toResponse);
     }
 
@@ -45,7 +47,7 @@ public class EmployeeService {
                 employee.getExperience(),
                 employee.getJoiningDate(),
                 employee.getCountry(),
-                currentSalary == null ? null : currentSalary.getAmount(),
+                employee.getCurrentSalaryAmount(),
                 currentSalary == null ? null : currentSalary.getCurrency(),
                 employee.getSalaries().size());
     }

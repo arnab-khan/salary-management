@@ -1,6 +1,7 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, TemplateRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
@@ -15,7 +16,7 @@ type SortDirection = 'asc' | 'desc';
 
 @Component({
   selector: 'app-employee-list',
-  imports: [NgClass, NgTemplateOutlet, MatPaginatorModule, MatProgressSpinnerModule, MatSelectModule],
+  imports: [NgClass, NgTemplateOutlet, MatDialogModule, MatPaginatorModule, MatProgressSpinnerModule, MatSelectModule],
   templateUrl: './employee-list.html',
   styleUrl: './employee-list.scss',
 })
@@ -24,6 +25,7 @@ export class EmployeeList implements OnInit {
   private readonly router = inject(Router);
   private readonly employeeService = inject(Employee);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dialog = inject(MatDialog);
   private readonly searchKeywordChange = new Subject<string>();
 
   readonly isLoggingOut = signal(false);
@@ -39,6 +41,7 @@ export class EmployeeList implements OnInit {
   readonly isFilterOpen = signal(false);
   readonly selectedRoles = signal<string[]>([]);
   readonly selectedCountries = signal<string[]>([]);
+  readonly selectedCurrency = signal('');
   readonly selectedExperience = signal('');
   readonly roleOptions = signal<EnumOptionResponse[]>([]);
   readonly countryOptions = signal<EnumOptionResponse[]>([]);
@@ -109,6 +112,10 @@ export class EmployeeList implements OnInit {
   }
 
   sortBy(field: string): void {
+    if (field === 'currentSalaryAmount' && !this.selectedCurrency()) {
+      return;
+    }
+
     if (this.sortField() === field) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
@@ -118,6 +125,27 @@ export class EmployeeList implements OnInit {
 
     this.pageIndex.set(0);
     this.loadEmployees();
+  }
+
+  openCurrencySortDialog(dialogTemplate: TemplateRef<unknown>): void {
+    this.dialog.open(dialogTemplate, {
+      autoFocus: false,
+      maxWidth: 'calc(100vw - 2rem)',
+      width: '24rem',
+    });
+  }
+
+  closeCurrencySortDialog(): void {
+    this.dialog.closeAll();
+  }
+
+  applyCurrencySort(): void {
+    if (!this.selectedCurrency()) {
+      return;
+    }
+
+    this.closeCurrencySortDialog();
+    this.sortBy('currentSalaryAmount');
   }
 
   searchEmployees(keyword: string): void {
@@ -147,6 +175,7 @@ export class EmployeeList implements OnInit {
   clearFilters(): void {
     this.selectedRoles.set([]);
     this.selectedCountries.set([]);
+    this.selectedCurrency.set('');
     this.selectedExperience.set('');
     this.applyFilters();
   }
@@ -154,6 +183,7 @@ export class EmployeeList implements OnInit {
   hasActiveFilters(): boolean {
     return this.selectedRoles().length > 0
       || this.selectedCountries().length > 0
+      || this.selectedCurrency() !== ''
       || this.selectedExperience() !== '';
   }
 
@@ -163,6 +193,10 @@ export class EmployeeList implements OnInit {
 
   onCountryFilterChange(event: MatSelectChange): void {
     this.selectedCountries.set(event.value);
+  }
+
+  onCurrencyFilterChange(event: MatSelectChange): void {
+    this.selectedCurrency.set(event.value);
   }
 
   filteredRoleOptions(): EnumOptionResponse[] {
@@ -200,6 +234,7 @@ export class EmployeeList implements OnInit {
   private getSelectedFilters(): EmployeeFilters {
     return {
       countries: this.selectedCountries(),
+      currency: this.selectedCurrency(),
       experience: this.selectedExperience(),
       roles: this.selectedRoles(),
     };

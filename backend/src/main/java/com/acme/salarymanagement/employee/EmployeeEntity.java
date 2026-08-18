@@ -1,5 +1,6 @@
 package com.acme.salarymanagement.employee;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 @Entity
 @Getter
@@ -57,6 +59,10 @@ public class EmployeeEntity {
         @Enumerated(EnumType.STRING)
         @Column(nullable = false)
         private Country country;
+
+        // Exposes the latest salary amount as a read-only field so Spring Data can sort by it via Pageable.
+        @Formula("(select s.amount from salary s where s.employee_id = id order by s.created_at desc limit 1)")
+        private BigDecimal currentSalaryAmount;
 
         @OneToMany(mappedBy = "employee", // SalaryEntity owns the relationship using its "employee" field
                         cascade = CascadeType.ALL, // If operations performed on the parent Employee are propagated to
