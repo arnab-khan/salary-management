@@ -11,6 +11,41 @@
     }
 }
 
+.employee-search-input:focus {
+    border-color: var(--bs-border-color);
+}
+
+.filter-backdrop {
+    background: rgba(0, 0, 0, 0.35);
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    transition: opacity 0.2s ease;
+    z-index: 1040;
+
+    &--visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+.filter-panel {
+    bottom: 0;
+    max-width: 100%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    width: 24rem;
+    z-index: 1045;
+
+    &--open {
+        transform: translateX(0);
+    }
+}
+
 .employee-table {
 
     th,

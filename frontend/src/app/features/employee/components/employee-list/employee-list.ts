@@ -3,18 +3,19 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
 import { Auth } from '../../../../core/auth/services/auth';
-import { Employee } from '../../../services/employee';
+import { CurrencyOptionResponse, Employee, EmployeeFilters, EnumOptionResponse } from '../../../services/employee';
 import { EmployeeResponse } from '../../../../shared/interfaces/employee.interfaces';
 
 type SortDirection = 'asc' | 'desc';
 
 @Component({
   selector: 'app-employee-list',
-  imports: [NgClass, NgTemplateOutlet, MatPaginatorModule, MatProgressSpinnerModule],
+  imports: [NgClass, NgTemplateOutlet, MatPaginatorModule, MatProgressSpinnerModule, MatSelectModule],
   templateUrl: './employee-list.html',
   styleUrl: './employee-list.scss',
 })
@@ -35,9 +36,19 @@ export class EmployeeList implements OnInit {
   readonly sortField = signal('joiningDate');
   readonly sortDirection = signal<SortDirection>('desc');
   readonly searchKeyword = signal('');
+  readonly isFilterOpen = signal(false);
+  readonly selectedRoles = signal<string[]>([]);
+  readonly selectedCountries = signal<string[]>([]);
+  readonly selectedExperience = signal('');
+  readonly roleOptions = signal<EnumOptionResponse[]>([]);
+  readonly countryOptions = signal<EnumOptionResponse[]>([]);
+  readonly currencyOptions = signal<CurrencyOptionResponse[]>([]);
+  readonly roleOptionSearch = signal('');
+  readonly countryOptionSearch = signal('');
 
   ngOnInit(): void {
     this.subscribeToSearchKeywordChanges();
+    this.loadFilterOptions();
     this.loadEmployees();
   }
 
@@ -49,6 +60,21 @@ export class EmployeeList implements OnInit {
     ).subscribe((keyword) => this.searchEmployees(keyword));
   }
 
+  private loadFilterOptions(): void {
+    this.employeeService.getEnums().subscribe({
+      next: (response) => {
+        this.roleOptions.set(response.roles);
+        this.countryOptions.set(response.countries);
+        this.currencyOptions.set(response.currencies);
+      },
+      error: () => {
+        this.roleOptions.set([]);
+        this.countryOptions.set([]);
+        this.currencyOptions.set([]);
+      },
+    });
+  }
+
   loadEmployees(): void {
     this.isLoadingEmployees.set(true);
     this.employeeService.getEmployees(
@@ -56,6 +82,7 @@ export class EmployeeList implements OnInit {
       this.pageSize(),
       `${this.sortField()},${this.sortDirection()}`,
       this.searchKeyword(),
+      this.getSelectedFilters(),
     ).pipe(
       finalize(() => {
         this.isInitialLoading.set(false);
@@ -101,6 +128,95 @@ export class EmployeeList implements OnInit {
 
   onSearchKeywordChange(keyword: string): void {
     this.searchKeywordChange.next(keyword);
+  }
+
+  openFilter(): void {
+    this.isFilterOpen.set(true);
+  }
+
+  closeFilter(): void {
+    this.isFilterOpen.set(false);
+  }
+
+  applyFilters(): void {
+    this.pageIndex.set(0);
+    this.closeFilter();
+    this.loadEmployees();
+  }
+
+  clearFilters(): void {
+    this.selectedRoles.set([]);
+    this.selectedCountries.set([]);
+    this.selectedExperience.set('');
+    this.applyFilters();
+  }
+
+  hasActiveFilters(): boolean {
+    return this.selectedRoles().length > 0
+      || this.selectedCountries().length > 0
+      || this.selectedExperience() !== '';
+  }
+
+  onRoleFilterChange(event: MatSelectChange): void {
+    this.selectedRoles.set(event.value);
+  }
+
+  onCountryFilterChange(event: MatSelectChange): void {
+    this.selectedCountries.set(event.value);
+  }
+
+  filteredRoleOptions(): EnumOptionResponse[] {
+    return this.filteredOptions(this.roleOptions(), this.roleOptionSearch());
+  }
+
+  filteredCountryOptions(): EnumOptionResponse[] {
+    return this.filteredOptions(this.countryOptions(), this.countryOptionSearch());
+  }
+
+  onRoleOptionSearchChange(keyword: string): void {
+    this.roleOptionSearch.set(keyword);
+  }
+
+  onCountryOptionSearchChange(keyword: string): void {
+    this.countryOptionSearch.set(keyword);
+  }
+
+  onExperienceChange(experience: string): void {
+    this.selectedExperience.set(experience);
+  }
+
+  roleLabel(role: string): string {
+    return this.optionLabel(this.roleOptions(), role);
+  }
+
+  countryLabel(country: string): string {
+    return this.optionLabel(this.countryOptions(), country);
+  }
+
+  currencyIcon(currency: string): string {
+    return this.currencyOptions().find((option) => option.value === currency)?.icon ?? currency;
+  }
+
+  private getSelectedFilters(): EmployeeFilters {
+    return {
+      countries: this.selectedCountries(),
+      experience: this.selectedExperience(),
+      roles: this.selectedRoles(),
+    };
+  }
+
+  private filteredOptions(options: EnumOptionResponse[], keyword: string): EnumOptionResponse[] {
+    const normalizedKeyword = keyword.trim().toLowerCase();
+
+    if (!normalizedKeyword) {
+      return options;
+    }
+
+    return options.filter((option) => option.label.toLowerCase().includes(normalizedKeyword));
+  }
+
+  private optionLabel(options: EnumOptionResponse[], value: string): string {
+    return options.find((option) => option.value === value)?.label ?? value;
   }
 
   logout(): void {

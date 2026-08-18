@@ -37,3 +37,18 @@ body {
   height: 100%;
 }
 /* You can add global styles to this file, and also import other style files */
+
+.employee-filter-select-panel {
+  margin-left: -0.75rem;
+  padding-top: 0 !important;
+  scrollbar-width: thin;
+}
+
+.employee-filter-select-panel::-webkit-scrollbar {
+  width: 0.375rem;
+}
+
+.employee-filter-select-panel::-webkit-scrollbar-thumb {
+  background-color: var(--bs-secondary-color);
+  border-radius: 999rem;
+}

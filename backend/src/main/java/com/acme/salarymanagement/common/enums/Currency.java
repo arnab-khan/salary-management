@@ -2,10 +2,10 @@ package com.acme.salarymanagement.common.enums;
 
 public enum Currency {
 
-    INR("INR", "Indian Rupee", Country.INDIA, "INR"),
+    INR("INR", "Indian Rupee", Country.INDIA, "₹"),
     USD("USD", "US Dollar", Country.UNITED_STATES, "$"),
-    GBP("GBP", "British Pound", Country.UNITED_KINGDOM, "GBP"),
-    EUR("EUR", "Euro", Country.GERMANY, "EUR"),
+    GBP("GBP", "British Pound", Country.UNITED_KINGDOM, "£"),
+    EUR("EUR", "Euro", Country.GERMANY, "€"),
     CAD("CAD", "Canadian Dollar", Country.CANADA, "C$"),
     AUD("AUD", "Australian Dollar", Country.AUSTRALIA, "A$");
 
