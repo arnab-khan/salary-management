@@ -1,8 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { EmployeeResponse, PageResponse } from '../../shared/interfaces/employee.interfaces';
+import { environment } from '../../../../environments/environment';
+import { EmployeeResponse, PageResponse } from '../../../shared/interfaces/employee.interfaces';
 
 export interface EmployeeFilters {
   countries: string[];

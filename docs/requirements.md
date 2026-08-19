@@ -38,7 +38,6 @@ HR Manager can:
 
 * View an employee's current annual salary.
 * Update salary for an individual employee.
-* Update salaries for multiple selected employees in bulk.
 * View an employee's salary change history.
 * Salary changes will be stored as historical records without overwriting previous salary information.
 

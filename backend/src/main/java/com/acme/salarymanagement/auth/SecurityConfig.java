@@ -1,5 +1,6 @@
 package com.acme.salarymanagement.auth;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,15 +21,22 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @Configuration
 public class SecurityConfig {
+
+    private final RequestMappingHandlerMapping requestMappingHandlerMapping;
 
     @Value("${HR_USERNAME}")
     private String hrUsername;
 
     @Value("${HR_PASSWORD}")
     private String hrPassword;
+
+    public SecurityConfig(RequestMappingHandlerMapping requestMappingHandlerMapping) {
+        this.requestMappingHandlerMapping = requestMappingHandlerMapping;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,7 +47,9 @@ public class SecurityConfig {
                 // on unsafe requests as the X-XSRF-TOKEN header.
                 // Login/logout are ignored because they create or clear the session itself.
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        // Enables Spring Security's SPA CSRF handling for the XSRF-TOKEN
+                        // cookie and X-XSRF-TOKEN header used by Angular.
+                        .spa()
                         .ignoringRequestMatchers("/api/auth/login", "/api/auth/logout"))
                 .authorizeHttpRequests(auth -> auth
                         // Login must be public so the HR manager can create a session.
@@ -51,10 +61,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) ->
-                                writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
+                                writeSecurityErrorResponse(request, response, HttpServletResponse.SC_UNAUTHORIZED,
                                         "Please login to access this resource"))
                         .accessDeniedHandler((request, response, accessDeniedException) ->
-                                writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN,
+                                writeSecurityErrorResponse(request, response, HttpServletResponse.SC_FORBIDDEN,
                                         "You do not have permission to access this resource")));
 
         return http.build();
@@ -71,6 +81,24 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private void writeSecurityErrorResponse(HttpServletRequest request, HttpServletResponse response, int status,
+            String message) throws IOException {
+        if (!hasHandler(request)) {
+            writeErrorResponse(response, HttpServletResponse.SC_NOT_FOUND, "Resource not found");
+            return;
+        }
+
+        writeErrorResponse(response, status, message);
+    }
+
+    private boolean hasHandler(HttpServletRequest request) {
+        try {
+            return requestMappingHandlerMapping.getHandler(request) != null;
+        } catch (Exception exception) {
+            return true;
+        }
     }
 
     private void writeErrorResponse(HttpServletResponse response, int status, String message) throws IOException {

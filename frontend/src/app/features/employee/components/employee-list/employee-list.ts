@@ -1,4 +1,4 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { DatePipe, NgClass, NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, OnInit, TemplateRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -9,14 +9,15 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
 import { Auth } from '../../../../core/auth/services/auth';
-import { CurrencyOptionResponse, Employee, EmployeeFilters, EnumOptionResponse } from '../../../services/employee';
+import { CurrencyOptionResponse, Employee, EmployeeFilters, EnumOptionResponse } from '../../services/employee';
 import { EmployeeResponse } from '../../../../shared/interfaces/employee.interfaces';
+import { SalaryHistoryDialog } from '../../../salary/components/salary-history-dialog/salary-history-dialog';
 
 type SortDirection = 'asc' | 'desc';
 
 @Component({
   selector: 'app-employee-list',
-  imports: [NgClass, NgTemplateOutlet, MatDialogModule, MatPaginatorModule, MatProgressSpinnerModule, MatSelectModule],
+  imports: [DatePipe, NgClass, NgTemplateOutlet, MatDialogModule, MatPaginatorModule, MatProgressSpinnerModule, MatSelectModule],
   templateUrl: './employee-list.html',
   styleUrl: './employee-list.scss',
 })
@@ -229,6 +230,20 @@ export class EmployeeList implements OnInit {
 
   currencyIcon(currency: string): string {
     return this.currencyOptions().find((option) => option.value === currency)?.icon ?? currency;
+  }
+
+  openSalaryHistory(employee: EmployeeResponse): void {
+    this.dialog.open(SalaryHistoryDialog, {
+      autoFocus: false,
+      data: {
+        currencyIcon: (currency: string) => this.currencyIcon(currency),
+        employeeId: employee.id,
+        employeeName: employee.name,
+      },
+      height: '90dvh',
+      maxWidth: '90dvw',
+      width: '36rem',
+    });
   }
 
   private getSelectedFilters(): EmployeeFilters {

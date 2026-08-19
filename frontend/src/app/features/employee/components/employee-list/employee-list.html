@@ -142,11 +142,16 @@
               <td>{{ employee.email }}</td>
               <td>{{ roleLabel(employee.role) }}</td>
               <td>{{ employee.experience }} years</td>
-              <td>{{ employee.joiningDate }}</td>
+              <td>{{ employee.joiningDate | date: 'mediumDate' }}</td>
               <td>{{ countryLabel(employee.country) }}</td>
               <td>
                 @if (employee.currentSalaryAmount !== null && employee.currency) {
-                {{ currencyIcon(employee.currency) }} {{ employee.currentSalaryAmount }}
+                <div class="d-flex align-items-center gap-2">
+                  <span>{{ currencyIcon(employee.currency) }} {{ employee.currentSalaryAmount }}</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="openSalaryHistory(employee)">
+                    History
+                  </button>
+                </div>
                 } @else {
                 <span class="text-secondary">Not set</span>
                 }
