@@ -21,11 +21,11 @@ export class Login {
   readonly errorMessage = signal('');
 
   readonly loginForm = this.formBuilder.nonNullable.group({
-    username: ['hr@acme.com', [
+    username: ['', [
       Validators.required,
       Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/),
     ]],
-    password: ['admin123', Validators.required],
+    password: ['', Validators.required],
   });
 
   constructor() {

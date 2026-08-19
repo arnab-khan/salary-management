@@ -6,13 +6,14 @@ import com.acme.salarymanagement.common.enums.Role;
 import com.acme.salarymanagement.employee.EmployeeEntity;
 import com.acme.salarymanagement.employee.EmployeeRepository;
 import com.acme.salarymanagement.salary.SalaryEntity;
+
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -35,7 +36,11 @@ public class DataSeeder implements CommandLineRunner {
 
         Role[] roles = Role.values();
         Country[] countries = Country.values();
+
         Random random = new Random();
+
+        LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
 
         for (int i = 1; i <= 10_000; i++) {
 
@@ -44,59 +49,121 @@ public class DataSeeder implements CommandLineRunner {
             // Create employee profile data.
             employee.setName("Employee " + i);
             employee.setEmail("employee" + i + "@acme.com");
-            employee.setRole(roles[random.nextInt(roles.length)]);
-            employee.setExperience(random.nextInt(15) + 1);
-            employee.setJoiningDate(
-                    LocalDate.now().minusDays(random.nextInt(3650))
+            employee.setRole(
+                    roles[random.nextInt(roles.length)]
             );
-            Country country = countries[random.nextInt(countries.length)];
+            employee.setExperience(
+                    random.nextInt(15) + 1
+            );
+
+            /*
+             * Generate joining dates far enough in the past
+             * so every employee can support up to 10 unique
+             * salary-history years before the current year.
+             *
+             * Example in 2026:
+             * joining dates will be around 2007-2016.
+             */
+            LocalDate latestJoiningDate =
+                    LocalDate.of(currentYear - 10, 12, 31);
+
+            LocalDate earliestJoiningDate =
+                    latestJoiningDate.minusYears(9);
+
+            long joiningDateRange =
+                    latestJoiningDate.toEpochDay()
+                            - earliestJoiningDate.toEpochDay()
+                            + 1;
+
+            LocalDate joiningDate =
+                    earliestJoiningDate.plusDays(
+                            random.nextLong(joiningDateRange)
+                    );
+
+            employee.setJoiningDate(joiningDate);
+
+            Country country =
+                    countries[random.nextInt(countries.length)];
+
             employee.setCountry(country);
 
-            Currency currency = Currency.fromCountry(country);
+            // Currency is derived from employee country.
+            Currency currency =
+                    Currency.fromCountry(country);
 
-            // Distribute salary history in 10% buckets.
-            // 10% get no history, 10% get 1 history record, and so on up to 9 history records.
-            int historyRecordCount = random.nextInt(10);
-            int salaryRecordCount = historyRecordCount + 1;
-            int salaryAmount = 300000 + random.nextInt(1200000);
-            long employeeAgeInDays = Math.max(1, LocalDate.now().toEpochDay() - employee.getJoiningDate().toEpochDay());
-            long salaryIntervalInDays = Math.max(1, employeeAgeInDays / salaryRecordCount);
+            /*
+             * Pure random salary record count:
+             *
+             * 1 record  -> 10% chance
+             * 2 records -> 10% chance
+             * ...
+             * 10 records -> 10% chance
+             */
+            int salaryRecordCount =
+                    random.nextInt(10) + 1;
 
-            for (int salaryIndex = 1; salaryIndex <= salaryRecordCount; salaryIndex++) {
-                SalaryEntity salary = new SalaryEntity();
+            int salaryAmount =
+                    300000 + random.nextInt(1200000);
 
-                // Create salary records. Multiple records represent salary history.
+            /*
+             * Spread the selected number of salary records
+             * across unique past years.
+             *
+             * Example:
+             * employee joined in 2012
+             * salaryRecordCount = 4
+             *
+             * Records:
+             * 2012
+             * 2013
+             * 2014
+             * 2015
+             */
+            for (
+                    int salaryIndex = 0;
+                    salaryIndex < salaryRecordCount;
+                    salaryIndex++
+            ) {
+
+                SalaryEntity salary =
+                        new SalaryEntity();
+
                 salary.setEmployee(employee);
-                salary.setAmount(BigDecimal.valueOf(salaryAmount));
+
+                salary.setAmount(
+                        BigDecimal.valueOf(salaryAmount)
+                );
+
                 salary.setCurrency(currency);
+
+                LocalDate salaryDate =
+                        joiningDate.plusYears(salaryIndex);
+
+                /*
+                 * Defensive check:
+                 * seeded salary must never use current year.
+                 */
+                if (salaryDate.getYear() >= currentYear) {
+                    break;
+                }
+
                 salary.setCreatedAt(
-                        randomSalaryDate(employee.getJoiningDate(), salaryIntervalInDays, salaryIndex, random)
+                        salaryDate
+                                .atStartOfDay()
+                                .toInstant(ZoneOffset.UTC)
                 );
 
                 employee.getSalaries().add(salary);
 
-                // Increase the next salary by a random amount.
-                salaryAmount += 25000 + random.nextInt(150000);
+                // Increase salary for next history record.
+                salaryAmount +=
+                        25000 + random.nextInt(150000);
             }
 
             employees.add(employee);
         }
 
+        // Salary records are persisted through Employee cascade.
         employeeRepository.saveAll(employees);
-    }
-
-    private Instant randomSalaryDate(
-            LocalDate joiningDate,
-            long salaryIntervalInDays,
-            int salaryIndex,
-            Random random
-    ) {
-        long startOffset = salaryIntervalInDays * (salaryIndex - 1);
-        long randomOffset = random.nextLong(salaryIntervalInDays);
-
-        return joiningDate
-                .plusDays(startOffset + randomOffset)
-                .atStartOfDay()
-                .toInstant(ZoneOffset.UTC);
     }
 }

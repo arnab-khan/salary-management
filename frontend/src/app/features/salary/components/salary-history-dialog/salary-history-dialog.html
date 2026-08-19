@@ -9,18 +9,11 @@
     <div class="d-flex align-items-center gap-2 ms-auto">
       <div class="input-group">
         <span class="input-group-text">{{ latestSalaryCurrency() ? currencyIcon(latestSalaryCurrency()) : '-' }}</span>
-        <input
-          type="number"
-          min="0.01"
-          class="form-control"
-          aria-label="Latest salary"
-          placeholder="Latest salary"
-          [value]="latestSalaryAmount()"
+        <input oninput="this.value = this.value.replace(/[^0-9]/g, '')" step="1" type="number" min="0"
+          class="form-control shadow-none salary-input" aria-label="Latest salary" placeholder="Latest salary" [value]="latestSalaryAmount()"
           [disabled]="isLoading() || isUpdating() || !latestSalaryCurrency()"
           (input)="onLatestSalaryAmountChange($any($event.target).value)">
-        <button
-          type="button"
-          class="btn btn-primary"
+        <button type="button" class="btn btn-primary"
           [disabled]="isLoading() || isUpdating() || !latestSalaryAmount() || !latestSalaryCurrency()"
           (click)="updateSalary()">
           {{ isUpdating() ? 'Updating...' : 'Update' }}
@@ -48,7 +41,7 @@
         <tbody>
           @for (salary of salaries(); track salary.id) {
           <tr>
-            <td>{{ currencyIcon(salary.currency) }} {{ salary.amount }}</td>
+            <td>{{ currencyIcon(salary.currency) }} {{ salary.amount | number: '1.0-2': 'en-IN' }}</td>
             <td>{{ salary.createdAt | date: 'mediumDate' }}</td>
           </tr>
           } @empty {

@@ -1,9 +1,13 @@
+import { registerLocaleData } from '@angular/common';
+import localeEnIn from '@angular/common/locales/en-IN';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { credentialsInterceptor } from './core/interceptors/credentials-interceptor';
+
+registerLocaleData(localeEnIn);
 
 export const appConfig: ApplicationConfig = {
   providers: [

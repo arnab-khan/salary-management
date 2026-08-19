@@ -11,10 +11,6 @@
     }
 }
 
-.employee-search-input:focus {
-    border-color: var(--bs-border-color);
-}
-
 .filter-backdrop {
     background: rgba(0, 0, 0, 0.35);
     inset: 0;
@@ -87,7 +83,7 @@
     }
 
     &__salary {
-        min-width: 10rem;
+        min-width: 13rem;
     }
 
     &__history {

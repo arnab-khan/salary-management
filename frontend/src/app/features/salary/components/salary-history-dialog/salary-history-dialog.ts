@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -9,11 +9,12 @@ export interface SalaryHistoryDialogData {
   currencyIcon: (currency: string) => string;
   employeeId: number;
   employeeName: string;
+  onSalaryUpdated?: () => void;
 }
 
 @Component({
   selector: 'app-salary-history-dialog',
-  imports: [DatePipe, MatDialogModule, MatProgressSpinnerModule],
+  imports: [DatePipe, DecimalPipe, MatDialogModule, MatProgressSpinnerModule],
   templateUrl: './salary-history-dialog.html',
   styleUrl: './salary-history-dialog.scss',
 })
@@ -57,7 +58,10 @@ export class SalaryHistoryDialog {
     this.salaryService.addEmployeeSalary(this.data.employeeId, { amount, currency }).pipe(
       finalize(() => this.isUpdating.set(false)),
     ).subscribe({
-      next: () => this.loadSalaryHistory(),
+      next: () => {
+        this.loadSalaryHistory();
+        this.data.onSalaryUpdated?.();
+      },
     });
   }
 

@@ -43,13 +43,8 @@
 </ng-template>
 
 <ng-template #currencySelect>
-  <mat-select
-    class="form-control"
-    disableOptionCentering
-    panelClass="employee-filter-select-panel"
-    placeholder="Select currency"
-    [value]="selectedCurrency()"
-    (selectionChange)="onCurrencyFilterChange($event)">
+  <mat-select class="form-control shadow-none" disableOptionCentering panelClass="employee-filter-select-panel"
+    placeholder="Select currency" [value]="selectedCurrency()" (selectionChange)="onCurrencyFilterChange($event)">
     <mat-option value="">All</mat-option>
     @for (currency of currencyOptions(); track currency.value) {
     <mat-option [value]="currency.value">
@@ -63,14 +58,14 @@
   <div class="d-flex align-items-center justify-content-between gap-3 pb-3 flex-shrink-0 flex-wrap flex-sm-nowrap">
     <div class="flex-shrink-1 flex-xl-shrink-0 order-1 order-sm-0">
       <h1 class="h3 mb-0">
-        <span class="d-none d-lg-inline">ACME Salary Management Employees</span>
+        <span class="d-none d-lg-inline fw-bold">ACME Salary Management Employees</span>
         <span class="d-lg-none">Employees</span>
       </h1>
     </div>
 
     <div class="flex-grow-1 flex-xl-grow-0 search-employees order-3 order-sm-0 col-12 col-sm-auto">
-      <input #employeeSearch type="search" class="employee-search-input form-control shadow-none" placeholder="Search by ID, name, or email"
-        aria-label="Search employees" [disabled]="isLoadingEmployees()"
+      <input #employeeSearch type="search" class="employee-search-input form-control shadow-none"
+        placeholder="Search by ID, name, or email" aria-label="Search employees" [disabled]="isLoadingEmployees()"
         (input)="onSearchKeywordChange(employeeSearch.value)">
     </div>
 
@@ -92,8 +87,9 @@
         <mat-spinner diameter="40"></mat-spinner>
       </div>
       } @else {
-      <div class="table-responsive flex-grow-1 flex-shrink-1 overflow-auto">
-        <table class="employee-table table table-hover align-middle mb-0 position-relative h-100">
+      <div class="table-responsive flex-grow-1 flex-shrink-1 overflow-y-scroll">
+        <table class="employee-table table table-hover align-middle mb-0 position-relative"
+          [class.h-100]="employees().length === 0 || isLoadingEmployees()">
           <thead class="table-secondary position-sticky top-0">
             <tr>
               <th scope="col" class="employee-table__id">Employee ID</th>
@@ -147,9 +143,10 @@
               <td>
                 @if (employee.currentSalaryAmount !== null && employee.currency) {
                 <div class="d-flex align-items-center gap-2">
-                  <span>{{ currencyIcon(employee.currency) }} {{ employee.currentSalaryAmount }}</span>
-                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="openSalaryHistory(employee)">
-                    History
+                  <span>{{ currencyIcon(employee.currency) }} {{ employee.currentSalaryAmount | number: '1.0-2': 'en-IN' }}</span>
+                  <button type="button" class="btn btn-link p-0 text-decoration-none"
+                    (click)="openSalaryHistory(employee)">
+                    Manage
                   </button>
                 </div>
                 } @else {
@@ -182,7 +179,8 @@
 
   <div class="filter-backdrop" [class.filter-backdrop--visible]="isFilterOpen()" (click)="closeFilter()"></div>
 
-  <aside class="filter-panel bg-body shadow-lg d-flex flex-column" [class.filter-panel--open]="isFilterOpen()" aria-label="Employee filters">
+  <aside class="filter-panel bg-body shadow-lg d-flex flex-column" [class.filter-panel--open]="isFilterOpen()"
+    aria-label="Employee filters">
     <div class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3">
       <h2 class="h5 mb-0">Filters</h2>
       <button type="button" class="btn-close" aria-label="Close filters" (click)="closeFilter()"></button>
@@ -191,33 +189,17 @@
     <div class="p-3 overflow-auto flex-grow-1">
       <div class="mb-4">
         <label for="employeeExperienceFilter" class="form-label fw-semibold">Experience</label>
-        <input
-          id="employeeExperienceFilter"
-          type="number"
-          min="0"
-          class="form-control"
-          placeholder="Years"
-          [value]="selectedExperience()"
-          (input)="onExperienceChange($any($event.target).value)">
+        <input oninput="this.value = this.value.replace(/[^0-9]/g, '')" id="employeeExperienceFilter" type="number" min="0" step="1" class="form-control shadow-none" placeholder="Years"
+          [value]="selectedExperience()" (input)="onExperienceChange($any($event.target).value)">
       </div>
 
       <div class="mb-4">
         <label class="form-label fw-semibold">Role</label>
-        <mat-select
-          class="form-control"
-          disableOptionCentering
-          panelClass="employee-filter-select-panel"
-          multiple
-          placeholder="Select roles"
-          [value]="selectedRoles()"
-          (selectionChange)="onRoleFilterChange($event)">
+        <mat-select class="form-control shadow-none" disableOptionCentering panelClass="employee-filter-select-panel" multiple
+          placeholder="Select roles" [value]="selectedRoles()" (selectionChange)="onRoleFilterChange($event)">
           <div class="bg-body p-2 position-sticky top-0 z-1">
-            <input
-              type="search"
-              class="employee-search-input form-control shadow-none"
-              placeholder="Search roles"
-              (click)="$event.stopPropagation()"
-              (keydown)="$event.stopPropagation()"
+            <input type="search" class="employee-search-input form-control shadow-none" placeholder="Search roles"
+              (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()"
               (input)="onRoleOptionSearchChange($any($event.target).value)">
           </div>
           @for (role of filteredRoleOptions(); track role.value) {
@@ -228,21 +210,12 @@
 
       <div class="mb-4">
         <label class="form-label fw-semibold">Country</label>
-        <mat-select
-          class="form-control"
-          disableOptionCentering
-          panelClass="employee-filter-select-panel"
-          multiple
-          placeholder="Select countries"
-          [value]="selectedCountries()"
+        <mat-select class="form-control shadow-none" disableOptionCentering panelClass="employee-filter-select-panel" multiple
+          placeholder="Select countries" [value]="selectedCountries()"
           (selectionChange)="onCountryFilterChange($event)">
           <div class="bg-body p-2 position-sticky top-0 z-1">
-            <input
-              type="search"
-              class="employee-search-input form-control shadow-none"
-              placeholder="Search countries"
-              (click)="$event.stopPropagation()"
-              (keydown)="$event.stopPropagation()"
+            <input type="search" class="employee-search-input form-control shadow-none" placeholder="Search countries"
+              (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()"
               (input)="onCountryOptionSearchChange($any($event.target).value)">
           </div>
           @for (country of filteredCountryOptions(); track country.value) {
@@ -264,22 +237,24 @@
   </aside>
 
   <ng-template #currencySortDialog>
-  <div class="p-3">
-    <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-      <h2 class="h6 mb-0">Select Currency</h2>
-      <button type="button" class="btn-close" aria-label="Close currency dialog" (click)="closeCurrencySortDialog()"></button>
-    </div>
+    <div class="p-3">
+      <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+        <h2 class="h6 mb-0">Select Currency</h2>
+        <button type="button" class="btn-close" aria-label="Close currency dialog"
+          (click)="closeCurrencySortDialog()"></button>
+      </div>
 
-    <p class="text-secondary small mb-3">Select a currency before sorting current salary.</p>
+      <p class="text-secondary small mb-3">Select a currency before sorting current salary.</p>
 
-    <div class="mb-3">
-      <ng-container [ngTemplateOutlet]="currencySelect"></ng-container>
-    </div>
+      <div class="mb-3">
+        <ng-container [ngTemplateOutlet]="currencySelect"></ng-container>
+      </div>
 
-    <div class="d-flex justify-content-end gap-2">
-      <button type="button" class="btn btn-outline-secondary" (click)="closeCurrencySortDialog()">Cancel</button>
-      <button type="button" class="btn btn-primary" [disabled]="!selectedCurrency()" (click)="applyCurrencySort()">Apply</button>
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeCurrencySortDialog()">Cancel</button>
+        <button type="button" class="btn btn-primary" [disabled]="!selectedCurrency()"
+          (click)="applyCurrencySort()">Apply</button>
+      </div>
     </div>
-  </div>
   </ng-template>
 </div>

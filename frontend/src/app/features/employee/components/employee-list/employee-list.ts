@@ -1,4 +1,4 @@
-import { DatePipe, NgClass, NgTemplateOutlet } from '@angular/common';
+import { DatePipe, DecimalPipe, NgClass, NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, OnInit, TemplateRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -17,7 +17,7 @@ type SortDirection = 'asc' | 'desc';
 
 @Component({
   selector: 'app-employee-list',
-  imports: [DatePipe, NgClass, NgTemplateOutlet, MatDialogModule, MatPaginatorModule, MatProgressSpinnerModule, MatSelectModule],
+  imports: [DatePipe, DecimalPipe, NgClass, NgTemplateOutlet, MatDialogModule, MatPaginatorModule, MatProgressSpinnerModule, MatSelectModule],
   templateUrl: './employee-list.html',
   styleUrl: './employee-list.scss',
 })
@@ -239,6 +239,7 @@ export class EmployeeList implements OnInit {
         currencyIcon: (currency: string) => this.currencyIcon(currency),
         employeeId: employee.id,
         employeeName: employee.name,
+        onSalaryUpdated: () => this.loadEmployees(),
       },
       height: '90dvh',
       maxWidth: '90dvw',
