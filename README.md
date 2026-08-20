@@ -46,6 +46,8 @@ When the backend starts, the application automatically seeds 10,000 employees an
 
 ## Run Backend Tests
 
+Backend tests use JUnit 5 with Mockito.
+
 From the repository root:
 
 ```bash
@@ -64,6 +66,17 @@ npm start
 ```
 
 The frontend runs on `http://localhost:4200` and proxies `/api` requests to `http://localhost:8080`.
+
+## Run Frontend Tests
+
+Frontend tests use Vitest with Angular TestBed.
+
+From the repository root:
+
+```bash
+cd frontend
+npm test -- --watch=false
+```
 
 ## Login
 

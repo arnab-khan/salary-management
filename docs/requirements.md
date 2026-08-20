@@ -19,9 +19,8 @@ The table will contain:
 * Experience (Years)
 * Joining Date
 * Country
-* Current Salary
-* Currency
-* Actions (Update Salary / View Salary History)
+* Current Salary, including currency and salary management action (with Update Salary / View Salary History actions available from the salary cell)
+* Salary History Count
 
 ### **2.2. Table Features**
 
