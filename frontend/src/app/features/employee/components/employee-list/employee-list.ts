@@ -107,7 +107,7 @@ export class EmployeeList implements OnInit {
   }
 
   onPageChange(event: PageEvent): void {
-    this.pageIndex.set(event.pageIndex);
+    this.pageIndex.set(event.pageSize === this.pageSize() ? event.pageIndex : 0);
     this.pageSize.set(event.pageSize);
     this.loadEmployees();
   }
@@ -169,6 +169,10 @@ export class EmployeeList implements OnInit {
 
   applyFilters(): void {
     this.pageIndex.set(0);
+    if (!this.selectedCurrency() && this.sortField() === 'currentSalaryAmount') {
+      this.sortField.set('joiningDate');
+      this.sortDirection.set('desc');
+    }
     this.closeFilter();
     this.loadEmployees();
   }

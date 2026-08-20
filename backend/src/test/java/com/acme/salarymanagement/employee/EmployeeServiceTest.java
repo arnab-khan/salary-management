@@ -43,13 +43,15 @@ class EmployeeServiceTest {
                 salary(new BigDecimal("75000.00"), Currency.INR, Instant.parse("2025-01-01T00:00:00Z"))
         );
 
+        employee.setCurrentSalaryAmount(new BigDecimal("75000.00"));
+
         when(employeeRepository.searchEmployees("Employee", List.of(Role.SOFTWARE_ENGINEER), 5,
-                List.of(Country.INDIA), pageable))
+                List.of(Country.INDIA), Currency.INR, pageable))
                 .thenReturn(new PageImpl<>(List.of(employee), pageable, 1));
 
         // Act: call service exactly like the controller would.
         Page<EmployeeResponse> response = employeeService.getEmployees("Employee",
-                List.of(Role.SOFTWARE_ENGINEER), 5, List.of(Country.INDIA), pageable);
+                List.of(Role.SOFTWARE_ENGINEER), 5, List.of(Country.INDIA), Currency.INR, pageable);
 
         // Assert: service maps entity fields, picks latest salary, and keeps history count.
         EmployeeResponse employeeResponse = response.getContent().getFirst();
@@ -59,7 +61,7 @@ class EmployeeServiceTest {
 
         // Assert: service passes search/filter/page parameters to repository unchanged.
         verify(employeeRepository).searchEmployees("Employee", List.of(Role.SOFTWARE_ENGINEER), 5,
-                List.of(Country.INDIA), pageable);
+                List.of(Country.INDIA), Currency.INR, pageable);
     }
 
     // Purpose: verifies employee list response handles employees without salary records.
@@ -69,11 +71,11 @@ class EmployeeServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         EmployeeEntity employee = employeeWithSalaries();
 
-        when(employeeRepository.searchEmployees(null, null, null, null, pageable))
+        when(employeeRepository.searchEmployees(null, null, null, null, null, pageable))
                 .thenReturn(new PageImpl<>(List.of(employee), pageable, 1));
 
         // Act: call service without search/filter values.
-        Page<EmployeeResponse> response = employeeService.getEmployees(null, null, null, null, pageable);
+        Page<EmployeeResponse> response = employeeService.getEmployees(null, null, null, null, null, pageable);
 
         // Assert: salary fields are null and history count is zero.
         EmployeeResponse employeeResponse = response.getContent().getFirst();

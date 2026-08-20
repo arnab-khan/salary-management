@@ -2,7 +2,7 @@
 
 Salary Management is a full-stack application for HR managers to view employee salary records, update salaries, and review salary history. It is designed around a seeded employee dataset and a Spring Boot API consumed by an Angular frontend.
 
-[Demo Video](docs/demo-video.mp4)
+[Demo Video](https://drive.google.com/file/d/1Lyd67cv6HSHb_HYf4PykSsXx95iZXCCd/view?usp=sharing)
 
 ## Tech Stack
 
@@ -43,6 +43,15 @@ mvn spring-boot:run
 The backend runs on `http://localhost:8080`.
 
 When the backend starts, the application automatically seeds 10,000 employees and their salary records if the employee table is empty.
+
+## Run Backend Tests
+
+From the repository root:
+
+```bash
+cd backend
+mvn test
+```
 
 ## Run Frontend
 
