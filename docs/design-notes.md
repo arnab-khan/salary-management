@@ -2,11 +2,12 @@
 
 ## **1. Technology Choices**
 
-* **Frontend:** Angular
-* **Backend:** Java with Spring Boot
+* **Frontend:** Angular 22.1.0
+* **Backend:** Java 21 with Spring Boot 4.1.0
 * **Database:** MySQL
-* **Database Access:** Spring Data JPA with Hibernate
-* **UI Component Library:** Angular Material
+* **Database Access:** Spring Data JPA with Hibernate (managed by Spring Boot 4.1.0)
+* **UI Component Library:** Angular Material 22.1.2
+* **CSS Framework:** Bootstrap 5.3.8
 
 ## **2. Data Model**
 
